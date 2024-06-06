@@ -2,6 +2,7 @@ import express, { type Express } from 'express';
 import helmet from 'helmet';
 import compression from 'compression';
 import compressFilter from './utils/compressFilter';
+import cors from 'cors';
 
 import videoRoutes from './routes/videoRoutes';
 
@@ -18,6 +19,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Compression is used to reduce the size of the response body
 app.use(compression({ filter: compressFilter }));
+
+app.use(
+  cors({
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  }),
+);
 
 app.use('/api/v1', videoRoutes);
 
