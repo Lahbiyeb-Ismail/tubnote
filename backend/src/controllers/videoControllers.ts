@@ -47,7 +47,7 @@ async function createVideo(video_id: string, res: Response) {
 
     const videoExsit = await prisma.video.findUnique({
       where: {
-        videoId: video_id,
+        videoUrlId: video_id,
       },
     });
 
@@ -67,7 +67,7 @@ async function createVideo(video_id: string, res: Response) {
 
       await prisma.video.create({
         data: {
-          videoId: video_id,
+          videoUrlId: video_id,
           title: title ?? '',
           description: description ?? '',
           publishedAt: publishedAt ?? '',
@@ -96,7 +96,7 @@ export async function getVideoDetails(req: Request, res: Response) {
     } else {
       const videoInfo = await prisma.video.findUnique({
         where: {
-          videoId: video_id,
+          videoUrlId: video_id,
         },
       });
 

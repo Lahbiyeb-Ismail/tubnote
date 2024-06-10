@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { getAllNotes } from '../controllers/noteControllers';
+import { createVideoNote, getVideoNotes } from '../controllers/noteControllers';
 
 const router = Router();
 
-router.route('/videos/:video_id/notes').get(getAllNotes);
+router.route('/videos/:video_id/notes').get(getVideoNotes);
+router.route('/videos/:video_id/notes').post(createVideoNote);
 
 export default router;
