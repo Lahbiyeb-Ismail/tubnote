@@ -22,3 +22,9 @@ export interface YouTubeAPIResponse {
 }
 
 export type VideoPart = 'snippet, statistics, player';
+
+interface Note {
+  title: string;
+  content: string;
+  videoId: string;
+}
