@@ -5,6 +5,7 @@ import compressFilter from './utils/compressFilter';
 import cors from 'cors';
 
 import videoRoutes from './routes/videoRoutes';
+import noteRoutes from './routes/noteRoutes';
 
 const app: Express = express();
 
@@ -28,5 +29,6 @@ app.use(
 );
 
 app.use('/api/v1', videoRoutes);
+app.use('/api/v1', noteRoutes);
 
 export default app;

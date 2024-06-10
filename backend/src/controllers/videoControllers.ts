@@ -5,6 +5,7 @@ import type {
   YouTubeAPIResponse,
   YouTubeVideoItem,
 } from '../types/video';
+import prisma from '../lib/prismaDB';
 
 dotenv.config();
 
@@ -36,68 +37,74 @@ async function getVideoData(
   }
 }
 
-export async function getVideoPlayer(req: Request, res: Response) {
-  const { video_id } = req.params;
+async function createVideo(video_id: string, res: Response) {
   try {
-    const items = await getVideoData(video_id, 'player');
+    const items = await getVideoData(video_id, 'snippet, statistics, player');
 
-    if (!items || items.length === 0)
-      return res.status(404).json({
-        message: 'Video not found',
-      });
+    if (!items || items.length === 0) {
+      return res.status(404);
+    }
 
-    const videoPlayer = items[0]?.player?.embedHtml;
-
-    res.json({
-      message: 'Video player fetched successfully',
-      videoPlayer,
+    const videoExsit = await prisma.video.findUnique({
+      where: {
+        videoId: video_id,
+      },
     });
-  } catch (error) {
-    console.error('Error fetching video description:', error);
-  }
-}
 
-export async function getVideoStates(req: Request, res: Response) {
-  const { video_id } = req.params;
-  try {
-    const items = await getVideoData(video_id, 'statistics');
+    if (!videoExsit) {
+      const { title, description, publishedAt, channelTitle } =
+        items[0]?.snippet || {};
 
-    if (!items || items.length === 0)
-      return res.status(404).json({
-        message: 'Video not found',
+      const {
+        viewCount,
+        likeCount,
+        dislikeCount,
+        commentCount,
+        favoriteCount,
+      } = items[0]?.statistics || {};
+
+      const videoPlayer = items[0]?.player?.embedHtml;
+
+      await prisma.video.create({
+        data: {
+          videoId: video_id,
+          title: title ?? '',
+          description: description ?? '',
+          publishedAt: publishedAt ?? '',
+          channelTitle: channelTitle ?? '',
+          viewCount: viewCount ?? '',
+          likeCount: likeCount ?? '',
+          dislikeCount: dislikeCount ?? '',
+          commentCount: commentCount ?? '',
+          favoriteCount: favoriteCount ?? '',
+          videoPlayer: videoPlayer ?? '',
+        },
       });
-
-    const videoStatistics = items[0]?.statistics;
-
-    res.json({
-      message: 'Video statistics fetched successfully',
-      videoStatistics,
-    });
+    }
   } catch (error) {
-    console.error('Error fetching video description:', error);
+    return res.json({ error });
   }
 }
 
 export async function getVideoDetails(req: Request, res: Response) {
-  const { video_id } = req.params;
+  const video_id = req.params['video_id'] as string;
   try {
-    const items = await getVideoData(video_id, 'snippet');
+    const data = await createVideo(video_id, res);
 
-    if (!items || items.length === 0)
-      return res.status(404).json({
-        message: 'Video not found',
+    if (data?.statusCode === 404) {
+      return res.status(404).json({ message: 'Video not found' });
+    } else {
+      const videoInfo = await prisma.video.findUnique({
+        where: {
+          videoId: video_id,
+        },
       });
 
-    const { title, description, publishedAt, channelTitle } =
-      items[0]?.snippet || {};
-
-    res.json({
-      title,
-      description,
-      publishedAt,
-      channelTitle,
-    });
+      return res.json({
+        videoInfo,
+      });
+    }
   } catch (error) {
-    console.error('Error fetching video description:', error);
+    return res.json({ error });
   }
 }
